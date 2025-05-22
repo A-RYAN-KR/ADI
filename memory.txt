@@ -131,149 +131,116 @@ int main() {
  next_fit(block_size, original_block_size, blocks, process_size, processes);
  return 0;
 }
+-------------------------------------------------------------------------------------------------------------------------------
 2. buddy sytem :
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
-#define MAX_BLOCK_SIZE 1024
-#define MAX_LEVELS 11 // log2(1024) + 1
+
+// Define the block structure
 typedef struct Block {
- int size;
- int is_free;
- int process_id;
- struct Block* next;
+    int size;
+    int is_free;
+    int process_size;
+    char process;
+    struct Block* left;
+    struct Block* right;
 } Block;
-Block* free_list[MAX_LEVELS];
-// Create a new memory block
+
+// Get next power of 2 >= n
+int next_power_of_two(int n) {
+    int p = 1;
+    while (p < n) p *= 2;
+    return p;
+}
+
+// Create a new block
 Block* create_block(int size) {
- Block* block = (Block*)malloc(sizeof(Block));
- block->size = size;
- block->is_free = 1;
- block->process_id = -1;
- block->next = NULL;
- return block;
+    Block* b = (Block*)malloc(sizeof(Block));
+    b->size = size;
+    b->is_free = 1;
+    b->process_size = 0;
+    b->process = '-';
+    b->left = NULL;
+    b->right = NULL;
+    return b;
 }
-// Initialize memory with 1 large free block
-void init_memory_pool() {
- for (int i = 0; i < MAX_LEVELS; i++)
- free_list[i] = NULL;
- Block* initial_block = create_block(MAX_BLOCK_SIZE);
- free_list[MAX_LEVELS - 1] = initial_block;
+
+// Allocate a process
+int allocate(Block* block, int size, char name) {
+    if (!block->is_free || block->size < size)
+        return 0;
+
+    int needed = next_power_of_two(size);
+
+    if (block->size == needed && block->is_free) {
+        block->is_free = 0;
+        block->process_size = size;
+        block->process = name;
+        return 1;
+    }
+
+    if (!block->left && !block->right) {
+        int half = block->size / 2;
+        block->left = create_block(half);
+        block->right = create_block(half);
+    }
+
+    if (allocate(block->left, size, name)) return 1;
+    return allocate(block->right, size, name);
 }
-// Display current memory state
-void print_memory_state() {
- printf("\nCurrent Memory State:\n");
- for (int i = 0; i < MAX_LEVELS; i++) {
- printf("Block size %d KB: ", (int)pow(2, i));
- Block* current = free_list[i];
- while (current != NULL) {
- printf("[Size: %d, Free: %s", current->size, current->is_free ? "Yes" : "No");
- if (!current->is_free)
- printf(", Process ID: %d", current->process_id);
- printf("] -> ");
- current = current->next;
- }
- printf("NULL\n");
- }
+
+// Print blocks and calculate internal fragmentation
+int print_blocks(Block* block, int level, int* total_frag) {
+    if (!block) return 0;
+
+    for (int i = 0; i < level; i++) printf("    ");
+
+    printf("%d", block->size);
+
+    if (!block->is_free && block->process != '-') {
+        int frag = block->size - block->process_size;
+        printf(" (%c, Frag: %d)", block->process, frag);
+        *total_frag += frag;
+    }
+
+    printf("\n");
+
+    print_blocks(block->left, level + 1, total_frag);
+    print_blocks(block->right, level + 1, total_frag);
+    return *total_frag;
 }
-// Find the smallest level with a block >= required size
-int find_level(int size) {
- int adjusted_size = (int)pow(2, ceil(log2(size)));
- int level = log2(adjusted_size);
- for (int i = level; i < MAX_LEVELS; i++) {
- if (free_list[i] != NULL)
- return i;
- }
- return -1;
-}
-// Split a block into two buddies
-void split_block(int index) {
- Block* block = free_list[index];
- if (!block) return;
- free_list[index] = block->next;
- int new_size = block->size / 2;
- Block* buddy1 = block;
- Block* buddy2 = create_block(new_size);
- buddy1->size = new_size;
- buddy2->size = new_size;
- buddy1->is_free = 1;
- buddy2->is_free = 1;
- buddy1->next = buddy2;
- buddy2->next = free_list[index - 1];
- free_list[index - 1] = buddy1;
- printf("Split block of size %d KB into two buddies of size %d KB each.\n", new_size * 2,
-new_size);
-}
-// Allocate memory to a process
-Block* allocate_memory(int size, int process_id) {
- printf("\nAllocating %d KB to Process %d\n", size, process_id);
- int level = find_level(size);
- if (level == -1) {
- printf("Error: No sufficient block found for Process %d.\n", process_id);
- return NULL;
- }
- int required_level = (int)ceil(log2(size));
- while (level > required_level) {
- split_block(level);
- level--;
- }
- Block* block = free_list[level];
- if (!block) return NULL;
- free_list[level] = block->next;
- block->is_free = 0;
- block->process_id = process_id;
- block->next = NULL;
- printf("Allocated Process %d to block of size %d KB. Remaining = %d KB\n", process_id,
-block->size, block->size - size);
- print_memory_state();
- return block;
-}
-// Merge two free buddy blocks if possible
-void merge_buddies(Block* block) {
- int index = log2(block->size);
- Block* buddy = NULL, *prev = NULL;
- for (Block* curr = free_list[index]; curr != NULL; prev = curr, curr = curr->next) {
- if (curr->is_free && curr->size == block->size) {
- buddy = curr;
- break;
- }
- }
- if (buddy != NULL) {
- if (prev != NULL) prev->next = buddy->next;
- else free_list[index] = buddy->next;
- printf("Merging two buddies of size %d KB into block of size %d KB\n", block->size,
-block->size * 2);
- block->size *= 2;
- block->is_free = 1;
- block->process_id = -1;
- block->next = NULL;
- merge_buddies(block);
- } else {
- block->is_free = 1;
- block->process_id = -1;
- block->next = free_list[index];
- free_list[index] = block;
- }
-}
-// Free memory of a process
-void free_memory(Block* block) {
- printf("\nFreeing memory of Process %d from block size %d KB\n", block->process_id,
-block->size);
- merge_buddies(block);
- print_memory_state();
-}
+
 int main() {
- init_memory_pool();
- printf("Initial Memory State:\n");
- print_memory_state();
- Block* p1 = allocate_memory(150, 1);
- Block* p2 = allocate_memory(100, 2);
- Block* p3 = allocate_memory(60, 3);
- Block* p4 = allocate_memory(300, 4);
- if (p2) free_memory(p2);
- if (p1) free_memory(p1);
- return 0;
+    int n;
+    Block* root = create_block(1024);
+
+    printf("Enter number of processes: ");
+    scanf("%d", &n);
+
+    for (int i = 0; i < n; i++) {
+        char name;
+        int size;
+
+        printf("Process %d name: ", i + 1);
+        scanf(" %c", &name); 
+
+        printf("Process %d size: ", i + 1);
+        scanf("%d", &size);
+
+        if (!allocate(root, size, name)) {
+            printf("Could not allocate memory for process %c\n", name);
+        }
+    }
+
+    printf("\nMemory Allocation:\n");
+    int total_internal_fragmentation = 0;
+    print_blocks(root, 0, &total_internal_fragmentation);
+
+    printf("\nTotal Internal Fragmentation: %d\n", total_internal_fragmentation);
+
+    return 0;
 }
+-----------------------------------------------------------------------------------------------------------------------------
 3. Conversion of Physical a to real addres , FIFO)
 #include <stdio.h>
 #include <stdlib.h>
@@ -360,7 +327,8 @@ int main() {
  }
  return 0;
 }
-4. Page replacemtn algos(LRU , OPTIMAL ,
+---------------------------------------------------------------------------------------------------------------------------------
+4. Page replacemtn algos(LRU , OPTIMAL , fifo )
 #include <stdio.h>
 #include <stdbool.h>
 // Print current state of memory frames
