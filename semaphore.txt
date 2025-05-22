@@ -1,0 +1,274 @@
+Assignment 3
+Name: Aryan Jha
+PRN: 12310601
+Class:SY-CS-A
+Roll: 29
+Batch: 3
+Aim:
+1. Producer Consumer Problem
+2. Reader Writer problem
+3. Dining Philosopher Problem
+Description:
+1. Producer-Consumer Problem
+Concept: It models synchronization between processes that share a common buffer (queue).
+Setup:
+● Producer generates data (items) and puts them in a buffer.
+● Consumer removes items from the buffer and processes them.
+Problem: Ensuring proper coordination so:
+● The buffer doesn’t overflow (Producer shouldn’t add if full).
+● The buffer doesn’t underflow (Consumer shouldn’t remove if empty).
+C Code :
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#define BUFFER_SIZE 5
+int queue[BUFFER_SIZE]; // Shared buffer
+int avail = 0; // Number of items in buffer
+sem_t empty, full, s; // Semaphores
+void *producer(void *arg) {
+ int prod = 0, item;
+ while (prod < BUFFER_SIZE) {
+ item = rand() % 1000;
+ sem_wait(&empty);
+ sem_wait(&s);
+ queue[avail] = item;
+ avail++;
+ prod++;
+ printf("Produced: %d\n", item);
+ sleep(1);
+ sem_post(&s);
+ sem_post(&full);
+ if (prod == BUFFER_SIZE) {
+ printf("\nThe Buffer is full.\n");
+ }
+ }
+ pthread_exit(0);
+}
+void *consumer(void *arg) {
+ int cons = 0, my_item;
+ while (cons < BUFFER_SIZE) {
+ sem_wait(&full);
+ sem_wait(&s);
+ avail--;
+ my_item = queue[avail];
+ cons++;
+ sem_post(&s);
+ sem_post(&empty);
+ printf("Consumed: %d\n", my_item);
+ sleep(2);
+ if (avail == 0) {
+ printf("\nThe buffer is empty.\n");
+ }
+ }
+ pthread_exit(0);
+}
+int main() {
+ pthread_t prodThread, consThread;
+ // Initialize semaphores
+ sem_init(&empty, 0, BUFFER_SIZE);
+ sem_init(&full, 0, 0);
+ sem_init(&s, 0, 1);
+ // Create threads
+ pthread_create(&prodThread, NULL, producer, NULL);
+ pthread_create(&consThread, NULL, consumer, NULL);
+ // Wait for threads to finish
+ pthread_join(prodThread, NULL);
+ pthread_join(consThread, NULL);
+ // Destroy semaphores
+ sem_destroy(&empty);
+ sem_destroy(&full);
+ sem_destroy(&s);
+ return 0;
+}
+2. Dining Philosopher problem
+Concept: It illustrates the problem of resource allocation in a system with multiple competing
+processes.
+Setup: Five philosophers sit around a circular table with a fork between each pair. Each
+philosopher alternates between thinking and eating. To eat, a philosopher must pick up both the
+left and right forks.
+Problem: If every philosopher picks up their left fork at the same time and waits for the right
+one, a deadlock occurs.
+C Code:
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+#define N 5 // Number of philosophers
+#define THINKING 0
+#define HUNGRY 1
+#define EATING 2
+int STATE[N]; // Array to track the state of each philosopher
+sem_t mutex; // Semaphore for mutual exclusion
+sem_t S[N]; // Semaphore for each philosopher
+#define LEFT (i + N - 1) % N
+#define RIGHT (i + 1) % N
+void think(int i) {
+ printf("Philosopher %d is thinking\n", i);
+ usleep(1000000); // Simulate thinking
+}
+void eat(int i) {
+ printf("Philosopher %d is eating\n", i);
+ usleep(1000000); // Simulate eating
+}
+void test(int i) {
+ if (STATE[i] == HUNGRY && STATE[LEFT] != EATING && STATE[RIGHT] !=
+EATING) {
+ STATE[i] = EATING;
+ printf("Philosopher %d takes forks %d and %d\n", i, LEFT, RIGHT);
+ printf("Philosopher %d starts eating\n", i);
+ sem_post(&S[i]); // Allow philosopher to proceed with eating
+ }
+}
+void take_fork(int i) {
+ sem_wait(&mutex); // Ensure mutual exclusion
+ STATE[i] = HUNGRY;
+ printf("Philosopher %d is hungry\n", i);
+
+ test(i); // Try to acquire forks
+
+ sem_post(&mutex);
+ sem_wait(&S[i]); // Block if forks are not available
+}
+void put_fork(int i) {
+ sem_wait(&mutex);
+
+ printf("Philosopher %d puts down forks %d and %d\n", i, LEFT, RIGHT);
+ STATE[i] = THINKING;
+ test(LEFT); // Check if the left philosopher can eat
+ test(RIGHT); // Check if the right philosopher can eat
+
+ sem_post(&mutex);
+}
+void *philosopher(void *num) {
+ int i = *(int *)num;
+ free(num); // Free allocated memory
+
+ while (1) {
+ think(i);
+ take_fork(i);
+ eat(i);
+ put_fork(i);
+ }
+}
+int main() {
+ pthread_t thread_id[N];
+
+ // Initialize semaphores
+ sem_init(&mutex, 0, 1);
+ for (int i = 0; i < N; i++) {
+ sem_init(&S[i], 0, 0);
+ STATE[i] = THINKING;
+ }
+ // Create philosopher threads
+ for (int i = 0; i < N; i++) {
+ int *arg = malloc(sizeof(*arg));
+ *arg = i;
+ pthread_create(&thread_id[i], NULL, philosopher, arg);
+ }
+ // Join threads (in practice, the program runs indefinitely)
+ for (int i = 0; i < N; i++) {
+ pthread_join(thread_id[i], NULL);
+ }
+ // Destroy semaphores
+ sem_destroy(&mutex);
+ for (int i = 0; i < N; i++) {
+ sem_destroy(&S[i]);
+ }
+ return 0;
+}
+3. Reader-Writer Problem
+Concept: Manages concurrent access to a shared resource (like a database or file).
+Setup:
+● Readers only read the resource and don’t modify it.
+● Writers modify the resource, so they require exclusive access.
+Problem:
+● Multiple readers should be allowed simultaneously.
+● Writers must have exclusive access (no readers or other writers).
+● Starvation issues (either readers or writers waiting indefinitely).
+C Code :
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include <unistd.h>
+sem_t s; // Semaphore for mutual exclusion (reader counter)
+sem_t db; // Semaphore for database access
+int rc = 0; // Reader count
+void readDatabase() {
+ printf("Reading from the database...\n");
+ usleep(1000000); // Simulate reading
+}
+void writeDatabase() {
+ printf("Writing to the database...\n");
+ usleep(1000000); // Simulate writing
+}
+void useDatabase() {
+ printf("Using read data...\n");
+ usleep(500000); // Simulate usage
+}
+void thinkUpdata() {
+ printf("Thinking of data to write...\n");
+ usleep(500000); // Simulate thinking
+}
+void *reader(void *arg) {
+ int id = *(int *)arg;
+ free(arg);
+ while (1) {
+ sem_wait(&s);
+ rc++;
+ if (rc == 1) { // First reader blocks writers
+ sem_wait(&db);
+ }
+ sem_post(&s);
+ printf("Reader %d is reading...\n", id);
+ readDatabase();
+ sem_wait(&s);
+ rc--;
+ if (rc == 0) { // Last reader releases the database
+ sem_post(&db);
+ }
+ sem_post(&s);
+ useDatabase();
+ usleep(1000000); // Simulate delay before next read
+ }
+}
+void *writer(void *arg) {
+ int id = *(int *)arg;
+ free(arg);
+ while (1) {
+ thinkUpdata();
+ sem_wait(&db); // Only one writer at a time
+ printf("Writer %d is writing...\n", id);
+ writeDatabase();
+ sem_post(&db);
+ usleep(2000000); // Simulate delay before next write
+ }
+}
+int main() {
+ pthread_t readers[5], writers[2];
+
+ sem_init(&s, 0, 1);
+ sem_init(&db, 0, 1);
+ for (int i = 0; i < 5; i++) {
+ int *id = malloc(sizeof(*id));
+ *id = i + 1;
+ pthread_create(&readers[i], NULL, reader, id);
+ }
+ for (int i = 0; i < 2; i++) {
+ int *id = malloc(sizeof(*id));
+ *id = i + 1;
+ pthread_create(&writers[i], NULL, writer, id);
+ }
+ for (int i = 0; i < 5; i++) {
+ pthread_join(readers[i], NULL);
+ }
+ for (int i = 0; i < 2; i++) {
+ pthread_join(writers[i], NULL);
+ }
+ sem_destroy(&s);
+ sem_destroy(&db);
+ return 0;
+}

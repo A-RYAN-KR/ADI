@@ -1,0 +1,583 @@
+OS Lab Assignment 4
+Subject : Operating System
+Name : Aditya Nath Deepak
+Roll no : 10
+PRN: 12311201
+Division: SY CS-A
+Batch : 3
+Problem statements :
+Implement following CPU scheduling algorithms
+1. FCFS
+2. SJF (Preemptive and non-preemptive)
+3. Priority (Preemptive and non-preemptive)
+4. Round Robin
+Topic : W.A.P. for Round Robin Algorithm Demonstration
+Round Robin Algorithm :
+Code:
+#include <stdio.h>
+struct Process {
+int id;
+int arrivalTime;
+int burstTime;
+int remainingTime;
+int completionTime;
+int turnaroundTime;
+int waitingTime;
+};
+void calculateTimes(struct Process processes[], int n, int timeQuantum)
+{
+int time = 0;
+int completed = 0;
+while (completed < n) {
+for (int i = 0; i < n; i++) {
+if (processes[i].remainingTime > 0 && processes[i].arrivalTime
+<= time) {
+if (processes[i].remainingTime > timeQuantum) {
+time += timeQuantum;
+processes[i].remainingTime -= timeQuantum;
+} else {
+time += processes[i].remainingTime;
+processes[i].completionTime = time;
+processes[i].turnaroundTime =
+processes[i].completionTime - processes[i].arrivalTime;
+processes[i].waitingTime = processes[i].turnaroundTime -
+processes[i].burstTime;
+processes[i].remainingTime = 0;
+completed++;
+}
+}
+}
+}
+}
+void printResults(struct Process processes[], int n) {
+printf("\nProcess ID\tCompletion Time\tTurnaround Time\tWaiting
+Time\n");
+for (int i = 0; i < n; i++) {
+printf("P%d\t\t%d\t\t%d\t\t%d\n", processes[i].id,
+processes[i].completionTime,
+processes[i].turnaroundTime,
+processes[i].waitingTime);
+}
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime /
+n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+}
+int main() {
+int n, timeQuantum;
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+struct Process processes[n];
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Enter arrival time and burst time for Process P%d: ",
+processes[i].id);
+scanf("%d %d", &processes[i].arrivalTime,
+&processes[i].burstTime);
+processes[i].remainingTime = processes[i].burstTime;
+}
+printf("Enter time quantum: ");
+scanf("%d", &timeQuantum);
+calculateTimes(processes, n, timeQuantum);
+printResults(processes, n);
+return 0;
+}
+OUTPUT :
+Enter the number of processes: 4
+Enter arrival time and burst time for Process P1: 0 4
+Enter arrival time and burst time for Process P2: 2 2
+Enter arrival time and burst time for Process P3: 4 6
+Enter arrival time and burst time for Process P4: 6 8
+Enter time quantum: 1
+Process ID Completion Time Turnaround Time Waiting Time
+P1 8 8 4
+P2 5 3 1
+P3 17 13 7
+P4 20 14 6
+Average Turnaround Time: 9.50
+Average Waiting Time: 4.50
+Screenshot:
+Others :
+2) Code of FCFS Algo:
+#include <stdio.h>
+struct Process {
+int id; // Process ID
+int arrivalTime; // Arrival time of the process
+int burstTime; // CPU burst time (execution time) for the
+process
+int completionTime; // Time at which the process finishes
+execution
+int turnaroundTime; // Time from arrival to completion
+(Turnaround time)
+int waitingTime; // Time the process spends waiting in the
+ready queue
+};
+void calculateTimes(struct Process processes[], int n) {
+int currentTime = 0; // Time when the CPU starts executing the
+first process
+int completed = 0; // Counter for completed processes
+while (completed < n) {
+int index = -1;
+// Find the process that has arrived and has not been
+completed yet
+for (int i = 0; i < n; i++) {
+// Process should have arrived and not yet be completed
+if (processes[i].arrivalTime <= currentTime &&
+processes[i].completionTime == 0) {
+// If this is the first process or the process has earlier
+arrival time than the last selected process
+if (index == -1 || processes[i].arrivalTime <
+processes[index].arrivalTime) {
+index = i;
+}
+}
+}
+// If a valid process is found, calculate its times
+if (index != -1) {
+currentTime += processes[index].burstTime; // Update the
+current time after process execution
+processes[index].completionTime = currentTime; // Set the
+completion time
+processes[index].turnaroundTime =
+processes[index].completionTime - processes[index].arrivalTime;
+// Calculate turnaround time
+processes[index].waitingTime =
+processes[index].turnaroundTime - processes[index].burstTime;
+// Calculate waiting time
+completed++; // Increment the completed process count
+}
+}
+}
+void printResults(struct Process processes[], int n) {
+printf("\nProcess ID\tArrival Time\tBurst Time\tCompletion
+Time\tTurnaround Time\tWaiting Time\n");
+// Print process details
+for (int i = 0; i < n; i++) {
+printf("P%-10d\t%-12d\t%-10d\t%-15d\t%-15d\t%-10d\n",
+processes[i].id,
+processes[i].arrivalTime, processes[i].burstTime,
+processes[i].completionTime,
+processes[i].turnaroundTime, processes[i].waitingTime);
+}
+// Calculate averages for turnaround time and waiting time
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+// Print the average times
+printf("\nAverage Turnaround Time: %.2f\n",
+totalTurnaroundTime / n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+}
+int main() {
+int n;
+printf("Enter the number of processes: ");
+scanf("%d", &n); // Take input for number of processes
+struct Process processes[n];
+// Take input for each process: arrival time and burst time
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1; // Assign process ID starting from 1
+printf("Enter arrival time and burst time for Process P%d: ",
+processes[i].id);
+scanf("%d %d", &processes[i].arrivalTime,
+&processes[i].burstTime);
+}
+calculateTimes(processes, n); // Call function to calculate times
+based on FCFS
+printResults(processes, n); // Call function to print the results
+return 0;
+}
+3) Code of SJF Algo. (preemptive):
+#include <stdio.h>
+struct Process {
+int id;
+int arrivalTime;
+int burstTime;
+int remainingTime;
+int completionTime;
+int turnaroundTime;
+int waitingTime;
+};
+void calculateTimes(struct Process processes[], int n) {
+int currentTime = 0;
+int completed = 0;
+while (completed < n) {
+int minIndex = -1;
+int minRemainingTime = 9999;
+for (int i = 0; i < n; i++) {
+if (processes[i].arrivalTime <= currentTime &&
+processes[i].remainingTime > 0) {
+if (processes[i].remainingTime < minRemainingTime) {
+minRemainingTime = processes[i].remainingTime;
+minIndex = i;
+}
+}
+}
+if (minIndex != -1) {
+processes[minIndex].remainingTime--;
+currentTime++;
+if (processes[minIndex].remainingTime == 0) {
+processes[minIndex].completionTime = currentTime;
+processes[minIndex].turnaroundTime =
+processes[minIndex].completionTime -
+processes[minIndex].arrivalTime;
+processes[minIndex].waitingTime =
+processes[minIndex].turnaroundTime - processes[minIndex].burstTime;
+completed++;
+}
+} else {
+currentTime++;
+}
+}
+}
+void printGanttChart(struct Process processes[], int n) {
+printf("\nGantt Chart:\n");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("P%d ", processes[i].id);
+}
+}
+printf("\n");
+printf("0 ");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("%d ", processes[i].completionTime);
+}
+}
+printf("\n");
+}
+int main() {
+int n;
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+struct Process processes[n];
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Enter arrival time and burst time for Process P%d: ",
+processes[i].id);
+scanf("%d %d", &processes[i].arrivalTime,
+&processes[i].burstTime);
+processes[i].remainingTime = processes[i].burstTime;
+}
+calculateTimes(processes, n);
+printf("\nProcess ID\tArrival Time\tBurst Time\tCompletion
+Time\tTurnaround Time\tWaiting Time\n");
+for (int i = 0; i < n; i++) {
+printf("P%-10d\t%-12d\t%-10d\t%-15d\t%-15d\t%-10d\n",
+processes[i].id,
+processes[i].arrivalTime,
+processes[i].burstTime,
+processes[i].completionTime,
+processes[i].turnaroundTime,
+processes[i].waitingTime);
+}
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime /
+n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+printGanttChart(processes, n);
+return 0;
+}
+4) Code of SJF Algo. ( non -preemptive):
+#include <stdio.h>
+struct Process {
+int id;
+int arrivalTime;
+int burstTime;
+int completionTime;
+int turnaroundTime;
+int waitingTime;
+};
+void calculateTimes(struct Process processes[], int n) {
+int currentTime = 0;
+int completed = 0;
+int minIndex;
+while (completed < n) {
+minIndex = -1;
+for (int i = 0; i < n; i++) {
+if (processes[i].arrivalTime <= currentTime &&
+processes[i].completionTime == 0) {
+if (minIndex == -1 || processes[i].burstTime <
+processes[minIndex].burstTime) {
+minIndex = i;
+}
+}
+}
+if (minIndex != -1) {
+currentTime += processes[minIndex].burstTime;
+processes[minIndex].completionTime = currentTime;
+processes[minIndex].turnaroundTime =
+processes[minIndex].completionTime -
+processes[minIndex].arrivalTime;
+processes[minIndex].waitingTime =
+processes[minIndex].turnaroundTime - processes[minIndex].burstTime;
+completed++;
+} else {
+currentTime++;
+}
+}
+}
+void printGanttChart(struct Process processes[], int n) {
+printf("\nGantt Chart:\n");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("P%d ", processes[i].id);
+}
+}
+printf("\n");
+printf("0 ");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("%d ", processes[i].completionTime);
+}
+}
+printf("\n");
+}
+int main() {
+int n;
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+struct Process processes[n];
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Enter arrival time and burst time for Process P%d: ",
+processes[i].id);
+scanf("%d %d", &processes[i].arrivalTime,
+&processes[i].burstTime);
+processes[i].completionTime = 0;
+}
+calculateTimes(processes, n);
+printf("\nProcess ID\tArrival Time\tBurst Time\tCompletion
+Time\tTurnaround Time\tWaiting Time\n");
+for (int i = 0; i < n; i++) {
+printf("P%-10d\t%-12d\t%-10d\t%-15d\t%-15d\t%-10d\n",
+processes[i].id,
+processes[i].arrivalTime,
+processes[i].burstTime,
+processes[i].completionTime,
+processes[i].turnaroundTime,
+processes[i].waitingTime);
+}
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime /
+n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+printGanttChart(processes, n);
+return 0;
+}
+5) Code of Priority Algo. (preemptive) :
+#include <stdio.h>
+#include <stdlib.h>
+struct Process {
+int id;
+int arrivalTime;
+int burstTime;
+int remainingTime;
+int priority;
+int completionTime;
+int turnaroundTime;
+int waitingTime;
+};
+void calculateTimes(struct Process processes[], int n) {
+int completed = 0;
+int currentTime = 0;
+while (completed < n) {
+int highestPriorityIndex = -1;
+int highestPriority = 9999;
+for (int i = 0; i < n; i++) {
+if (processes[i].arrivalTime <= currentTime &&
+processes[i].remainingTime > 0) {
+if (processes[i].priority < highestPriority) {
+highestPriority = processes[i].priority;
+highestPriorityIndex = i;
+}
+}
+}
+if (highestPriorityIndex != -1) {
+processes[highestPriorityIndex].remainingTime--;
+currentTime++;
+if (processes[highestPriorityIndex].remainingTime == 0) {
+processes[highestPriorityIndex].completionTime =
+currentTime;
+processes[highestPriorityIndex].turnaroundTime =
+processes[highestPriorityIndex].completionTime -
+processes[highestPriorityIndex].arrivalTime;
+processes[highestPriorityIndex].waitingTime =
+processes[highestPriorityIndex].turnaroundTime -
+processes[highestPriorityIndex].burstTime;
+completed++;
+}
+} else {
+currentTime++;
+}
+}
+}
+void printGanttChart(struct Process processes[], int n) {
+printf("\nGantt Chart:\n");
+int currentTime = 0;
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("P%d ", processes[i].id);
+currentTime = processes[i].completionTime;
+}
+}
+printf("\n");
+printf("0 ");
+currentTime = 0;
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("%d ", processes[i].completionTime);
+currentTime = processes[i].completionTime;
+}
+}
+printf("\n");
+}
+int main() {
+int n;
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+struct Process *processes = malloc(n * sizeof(struct Process));
+if (processes == NULL) {
+printf("Memory allocation failed!\n");
+return 1;
+}
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Enter arrival time, burst time, and priority for Process P%d:
+", processes[i].id);
+scanf("%d %d %d", &processes[i].arrivalTime,
+&processes[i].burstTime, &processes[i].priority);
+processes[i].remainingTime = processes[i].burstTime;
+}
+calculateTimes(processes, n);
+printf("\nProcess ID\tArrival Time\tBurst Time\tPriority\tCompletion
+Time\tTurnaround Time\tWaiting Time\n");
+for (int i = 0; i < n; i++) {
+printf("P%-10d\t%-12d\t%-10d\t%-8d\t%-15d\t%-15d\t%-10d\n",
+processes[i].id,
+processes[i].arrivalTime,
+processes[i].burstTime,
+processes[i].priority,
+processes[i].completionTime,
+processes[i].turnaroundTime,
+processes[i].waitingTime);
+}
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime /
+n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+printGanttChart(processes, n);
+free(processes);
+return 0;
+}
+6) Code of Priority Algo. (non - preemptive):
+#include <stdio.h>
+struct Process {
+int id;
+int arrivalTime;
+int burstTime;
+int priority;
+int completionTime;
+int turnaroundTime;
+int waitingTime;
+};
+void calculateTimes(struct Process processes[], int n) {
+int completed = 0;
+int currentTime = 0;
+while (completed < n) {
+int highestPriorityIndex = -1;
+int highestPriority = 9999;
+for (int i = 0; i < n; i++) {
+if (processes[i].arrivalTime <= currentTime &&
+processes[i].burstTime > 0) {
+if (processes[i].priority < highestPriority) {
+highestPriority = processes[i].priority;
+highestPriorityIndex = i;
+}
+}
+}
+if (highestPriorityIndex != -1) {
+currentTime += processes[highestPriorityIndex].burstTime;
+processes[highestPriorityIndex].completionTime = currentTime;
+processes[highestPriorityIndex].turnaroundTime =
+processes[highestPriorityIndex].completionTime -
+processes[highestPriorityIndex].arrivalTime;
+processes[highestPriorityIndex].waitingTime =
+processes[highestPriorityIndex].turnaroundTime -
+processes[highestPriorityIndex].burstTime;
+processes[highestPriorityIndex].burstTime = 0;
+completed++;
+} else {
+currentTime++;
+}
+}
+}
+void printGanttChart(struct Process processes[], int n) {
+printf("\nGantt Chart:\n");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("P%d ", processes[i].id);
+}
+}
+printf("\n");
+printf("0 ");
+for (int i = 0; i < n; i++) {
+if (processes[i].completionTime != 0) {
+printf("%d ", processes[i].completionTime);
+}
+}
+printf("\n");
+}
+int main() {
+int n;
+printf("Enter the number of processes: ");
+scanf("%d", &n);
+struct Process processes[n];
+for (int i = 0; i < n; i++) {
+processes[i].id = i + 1;
+printf("Enter arrival time, burst time, and priority for Process P%d:
+", processes[i].id);
+scanf("%d %d %d", &processes[i].arrivalTime,
+&processes[i].burstTime, &processes[i].priority);
+}
+calculateTimes(processes, n);
+printf("\nProcess ID\tArrival Time\tBurst Time\tPriority\tCompletion
+Time\tTurnaround Time\tWaiting Time\n");
+for (int i = 0; i < n; i++) {
+printf("P%-10d\t%-12d\t%-10d\t%-8d\t%-15d\t%-15d\t%-10d\n",
+processes[i].id,
+processes[i].arrivalTime,
+processes[i].burstTime == 0 ? 0 : processes[i].burstTime,
+processes[i].priority,
+processes[i].completionTime,
+processes[i].turnaroundTime,
+processes[i].waitingTime);
+}
+float totalTurnaroundTime = 0, totalWaitingTime = 0;
+for (int i = 0; i < n; i++) {
+totalTurnaroundTime += processes[i].turnaroundTime;
+totalWaitingTime += processes[i].waitingTime;
+}
+printf("\nAverage Turnaround Time: %.2f\n", totalTurnaroundTime /
+n);
+printf("Average Waiting Time: %.2f\n", totalWaitingTime / n);
+printGanttChart(processes, n);
+return 0;
+}
