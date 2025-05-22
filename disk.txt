@@ -5,6 +5,7 @@ Implement following Disk scheduling algorithms
 2. FCFS
 3. SCAN
 4. SSTF
+---------------------------------------------------------------------------------------------------------------------------------------------
 C- SCAN :
 #include <stdio.h>
 #include <stdlib.h>
@@ -75,6 +76,7 @@ printf("\nTotal seek time: %d\n", totalSeek);
 printf("\nTotal seek time: %.2f\n", avgseek);
 return 0;
 }
+---------------------------------------------------------------------------------------------------------------------------------------------
 FCFS :
 #include <stdio.h>
 #include <stdlib.h>
@@ -113,6 +115,7 @@ printf("\nTotal seek time: %d\n", totalSeek);
 printf("\nAverage seek time: %.2f\n", avgseek);
 return 0;
 }
+---------------------------------------------------------------------------------------------------------------------------------------------
 SCAN ALgo :
 #include <stdio.h>
 #include <stdlib.h>
@@ -177,6 +180,7 @@ printf("\nTotal seek time: %d\n", totalSeek);
 printf("\nTotal seek time: %.2f\n", avgseek);
 return 0;
 }
+---------------------------------------------------------------------------------------------------------------------------------------------
 SSTF :
 #include <stdio.h>
 #include <stdlib.h>
