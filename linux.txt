@@ -1,0 +1,659 @@
+OS Lab Assignment 1
+Subject : Operating System
+Name : Aditya Nath Deepak
+Roll no : 10
+PRN: 12311201
+Division: SY CS-A
+Batch : 3
+1. Change your password to a password you would like to use for the remainder of the semester.
+Input : student@admins-iMac-4 ~ % passwd
+Output :
+Changing password for student.
+Old Password:
+New Password :
+2. Display the system’s date.
+Input : student@admins-iMac-4 ~ % date
+Output :
+Wed Jan 8 15:27:54 IST 2025
+3. Count the number of lines in the /etc/passwd file.
+Input : student@admins-iMac-4 ~ % wc -l /etc/passwd
+Output : 120 /etc/passwd
+4. Find out who else is on the system.
+Input : student@admins-iMac-4 ~ % who
+Output :
+student console Jan 8 13:07
+student ttys000 Jan 8 15:27
+5. Direct the output of the man pages for the date command to a file named mydate.
+Input : student@admins-iMac-4 ~ % man date > mydate
+Output :
+6. Create a subdirectory called mydir.
+Input : student@admins-iMac-4 ~ % mkdir mydir
+Output :
+7. Move the file mydate into the new subdirectory.
+Input : student@admins-iMac-4 ~ % mv mydate mydir/
+Output :
+student@admins-iMac-4 ~ %
+8. Go to the subdirectory mydir and copy the file mydate to a new file called ourdate
+Input : student@admins-iMac-4 ~ % cd mydir
+student@admins-iMac-4 mydir % cp mydate ourdate
+Output :
+student@admins-iMac-4 ~ %
+9. List the contents of mydir.
+Input : student@admins-iMac-4 mydir % ls
+Output : mydate ourdate
+10. Do a long listing on the file ourdate and note the permissions.
+Input : student@admins-iMac-4 mydir % ls -l ourdate
+Output : -rw-r--r-- 1 student staff 12418 Jan 8 15:37 ourdate
+11. Display the name of the current directory starting from the root.
+Input : student@admins-iMac-4 mydir % pwd
+Output : /Users/student/mydir
+12. Move the files in the directory mydir back to your home directory.
+Input : mv mydir/* ~/
+Output : student@admins-iMac-4 mydir %
+13. Display the first 5 lines of mydate.
+Input : student@admins-iMac-4 ~ % head -n 5 mydate
+Output : DATE(1) BSD General Commands Manual DATE(1)
+NAME date -- display or set date and time
+14. Display the last 8 lines of mydate.
+Input : student@admins-iMac-4 ~ % tail -n 8 mydate
+Output :
+The date utility is expected to be compatible with IEEE Std 1003.2
+(``POSIX.2''). The -d, -f, -j, -n, -r, -t, and -v options are all extensions to the standard.
+HISTORY
+A date command appeared in Version 1 AT&T UNIX.
+BSD May 7, 2015 BSD
+15. Remove the directory mydir.
+Input : student@admins-iMac-4 ~ % rmdir mydir
+Output :
+16. Redirect the output of the long listing of files to a file named list.
+Input : student@admins-iMac-4 ~ % ls -l > list
+Output :
+17. Select any 5 capitals of states in India and enter them in a file named capitals1. Choose 5
+more capitals and enter them in a file named capitals2. Choose 5 more capitals and enter them in
+a file named capitals3. Concatenate all 3 files and redirect the output to a file named capitals.
+Input : student@admins-iMac-4 ~ % echo -e "Mumbai\nDelhi\nChennai\nKolkata\nBengaluru" >
+capitals1
+student@admins-iMac-4 ~ % echo -e "Gandhinagar\nLucknow\nJaipur\nHyderabad\nIndore" >
+capitals2
+student@admins-iMac-4 ~ % echo -e
+"Bhopal\nPatna\nChandigarh\nThiruvananthapuram\nGuwahati" > capitals3
+student@admins-iMac-4 ~ % cat capitals1 capitals2 capitals3 > capitals
+Output :
+18. Concatenate the file capitals2 at the end of file capitals.
+Input : student@admins-iMac-4 ~ % cat capitals2 >> capitals
+Output :
+19. Give read and write permissions to all users for the file capitals.
+Input : student@admins-iMac-4 ~ % chmod a+rw capitals
+Output :
+20. Give read permissions only to the owner of the file capitals. Open the file, make some changes
+and try to save it. What happens ?
+Input : student@admins-iMac-4 ~ % chmod 400 capitals
+Unable to save changes as the file is read- only
+Output :
+21. Create an alias to concatenate the 3 files capitals1, capitals2, capitals3 and redirect the output
+to a file named capitals. Activate the alias and make it run.
+Input :
+student@admins-iMac-4 ~ % alias concat_capitals="cat capitals1 capitals2 capitals3 >
+capitals"
+student@admins-iMac-4 ~ % concat_capitals
+Output :
+22. Find out the number of times the string “the” appears in the file mydate.
+Input : student@admins-iMac-4 ~ % grep -o "the" mydate | wc -l 20
+Output : 154
+23. Find out the line numbers on which the string “date” exists in mydate.
+Input : student@admins-iMac-4 ~ % grep -n "date" mydate
+Output : 5: date -- display or set date and time
+16: date and time. Otherwise, depending on the options specified, date will
+17: set the date and time or print it in a user-defined way.
+19: The date utility displays the date and time read from the kernel clock.
+20: When used to set the date and time, both the kernel clock and the hard21: ware clock are updated.
+23: Only the superuser may set the date, and if the system securelevel (see
+37: -j Do not try to set the date. This allows you to use the -f flag
+38: in addition to the + option to convert one date format to
+46: -R Use RFC 2822 date and time output format. This is equivalent to
+51: Print the date and time represented by seconds, where seconds is
+57: Print the date and time of the last modification of filename.
+64: -u Display or set the date in UTC (Coordinated Universal) time.
+66: -v Adjust (i.e., take the current date and display the result of the
+67: adjustment; not actually set the date) the second, minute, hour,
+69: preceded with a plus or minus sign, the date is adjusted forwards
+71: relevant part of the date is set. The date can be adjusted as
+82: used to specify which part of the date is to be adjusted.
+86: date will be put forwards (or backwards) to the next (previous)
+87: date that matches the given week day or month. This will not
+88: adjust the date, if the given week day or month is the same as
+91: When a date is adjusted to a specific value or in units greater
+94: So, assuming the current date is March 26, 0:30 and that the DST
+96: using -v +1H will adjust the date to March 26, 2:30. Likewise,
+97: if the date is October 29, 0:30 and the DST adjustment means that
+101: When the date is adjusted to a specific value that does not actu103: Europe/London timezone), the date will be silently adjusted for105: the date is adjusted to a specific value that occurs twice (for
+107: set so that the date matches the earlier of the two times.
+109: It is not possible to adjust a date to an invalid absolute day,
+114: Adjusting the date by months is inherently ambiguous because a
+115: month is a unit of variable length depending on the current date.
+116: This kind of date adjustment is applied in the most intuitive
+120: For example, using -v +1m on May 31 will adjust the date to June
+122: date adjusted to the last day of February. This approach is also
+125: months may take you to a different date.
+130: string which specifies the format in which to display the date and time.
+138: value for setting the system's notion of the current date and time. The
+139: canonical representation for setting the date and time is:
+159: TZ The timezone to use when displaying dates. The normal format is
+161: command ``TZ=America/Los_Angeles date'' displays the current time
+168: The date utility exits 0 on success, 1 if unable to set the date, and 2
+169: if able to set the local date, but unable to set it globally.
+174: date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+183: date -v1m -v+1y
+193: date -v1d -v3m -v0y -v-1d
+201: date -v3m -v30d -v0y -v-1m
+203: because there is no such date as the 30th of February.
+207: date -v1d -v+1m -v-1d -v-fri
+217: date 0613162785
+219: sets the date to ``June 13, 1985, 4:27 PM''.
+221: date "+%m%d%H%M%Y.%S"
+223: may be used on one machine to print out the date suitable for setting on
+228: date 1432
+230: sets the time to 2:32 PM, without modifying the date.
+234: date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s"
+252: 0 The date was written successfully
+253: 1 Unable to set the date
+254: 2 Able to set the local date, but unable to set it globally
+24. Print all lines of mydate except those that have the letter “i” in them.
+Input : student@admins-iMac-4 ~ % grep -v "i" mydate
+Output :
+DATE(1) BSD General Commands Manual DATE(1)
+NAME
+SYNOPSIS
+[+output_fmt]
+date [-jnu] [[[mm]dd]HH]MM[[cc]yy][.ss]
+DESCRIPTION
+ware clock are updated.
+than 1 second.
+another.
+the ``C'' locale .
+-r seconds
+hex.
+the current one.
+adjustment means that the clock goes forward at 01:00 to 02:00,
+essary to reach October 29, 2:30.
+``+%+''.
+year.
+dd Day, a number from 1 to 31.
+HH Hour, a number from 0 to 23.
+leap seconds).
+ENVIRONMENT
+FILES
+EXIT STATUS
+EXAMPLES
+The command:
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+DATE: 1987-11-21
+TIME: 13:36:16
+date -v1m -v+1y
+Sun Jan 4 04:15:24 GMT 1998
+The command:
+date -v1d -v3m -v0y -v-1d
+Tue Feb 29 03:18:00 GMT 2000
+date -v3m -v30d -v0y -v-1m
+The command:
+The command:
+date 0613162785
+sets the date to ``June 13, 1985, 4:27 PM''.
+date "+%m%d%H%M%Y.%S"
+another.
+The command:
+date 1432
+date -j -f "%a %b %d %T %Z %Y" "`date`" "+%s"
+DIAGNOSTICS
+LEGACY SYNOPSIS
+date [-jnu] [[[[[cc]yy]mm]dd]HH]MM[.ss]
+LEGACY DIAGNOSTICS
+1 Unable to set the date
+SEE ALSO
+4.3BSD.
+STANDARDS
+HISTORY
+BSD May 7, 2015 BSD
+25. List the words of 4 letters from the file mydate.
+Input : student@admins-iMac-4 ~ % grep -oE '\b\w{4}\b' mydate
+Output :
+DATE
+DATE
+date
+time
+When
+date
+time
+will
+date
+time
+user
+date
+time
+read
+from
+When
+used
+date
+time
+both
+hard
+ware
+Only
+date
+than
+time
+more
+than
+time
+zero
+will
+zero
+than
+done
+date
+This
+flag
+date
+sets
+time
+this
+time
+only
+2822
+date
+time
+This
+date
+time
+1970
+time
+date
+time
+last
+west
+date
+time
+take
+date
+date
+hour
+week
+year
+with
+plus
+sign
+date
+part
+date
+date
+many
+When
+than
+them
+days
+week
+days
+1980
+2038
+must
+used
+part
+date
+week
+name
+than
+name
+used
+with
+plus
+sign
+date
+will
+next
+date
+that
+week
+This
+will
+date
+week
+same
+When
+date
+than
+time
+less
+time
+date
+that
+that
+goes
+will
+date
+date
+that
+goes
+back
+will
+When
+date
+that
+does
+actu
+ally
+2000
+date
+will
+hour
+time
+When
+date
+that
+2000
+will
+that
+date
+date
+will
+fail
+five
+year
+ting
+date
+unit
+date
+This
+kind
+date
+most
+than
+last
+will
+will
+date
+June
+same
+will
+date
+last
+This
+also
+make
+most
+less
+that
+back
+same
+take
+date
+with
+plus
+sign
+user
+date
+time
+page
+well
+text
+fied
+does
+have
+plus
+sign
+date
+time
+date
+time
+year
+Year
+form
+1989
+2006
+from
+from
+Hour
+from
+from
+from
+plus
+leap
+Time
+Time
+time
+leap
+leap
+when
+date
+time
+more
+user
+time
+date
+able
+date
+date
+DATE
+will
+DATE
+1987
+TIME
+date
+will
+1998
+1997
+date
+will
+last
+year
+2000
+2000
+will
+date
+v30d
+such
+date
+30th
+date
+will
+last
+1997
+1997
+date
+sets
+date
+June
+1985
+date
+used
+date
+date
+1432
+sets
+time
+date
+date
+date
+used
+from
+time
+when
+time
+many
+ting
+time
+more
+than
+time
+with
+when
+line
+When
+mode
+exit
+date
+date
+Able
+date
+more
+mode
+with
+IEEE
+1003
+UNIX
+2015
+26. List 5 states in north east India in a file mystates. List their corresponding capitals in a file
+mycapitals. Use the paste command to join the 2 files.
+Input : student@admins-iMac-4 ~ % echo -e "Assam\nNagaland\nArunachal
+Pradesh\nManipur\nMeghalaya" > mystates
+student@admins-iMac-4 ~ % echo -e "Dispur\nKohima\nItanagar\nImphal\nShillong" >
+mycapitals
+student@admins-iMac-4 ~ % paste mystates mycapitals
+Output : Assam Dispur
+Nagaland Kohima
+Arunachal Pradesh Itanagar
+Manipur Imphal
+Meghalaya Shillong
+27. Use the cut command to print the 1 st and 3 rd columns of the /etc/passwd file for all students
+in this class.
+Input : student@admins-iMac-4 ~ % cut -d':' -f1,3 /etc/passwd | grep “student"
+Output :
+##
+# User Database
+#
+# Note that this file is consulted directly only when the system is running
+# in single-user mode. At other times this information is provided by
+# Open Directory.
+#
+# See the opendirectoryd(8) man page for additional information about
+# Open Directory.
+##
+nobody:-2
+root:0
+daemon:1
+_uucp:4
+_taskgated:13
+_networkd:24
+_installassistant:25
+_lp:26
+_postfix:27
+_scsd:31
+_ces:32
+_appstore:33
+_mcxalr:54
+_appleevents:55
+_geod:56
+_devdocs:59
+_sandbox:60
+_mdnsresponder:65
+_ard:67
+_www:70
+_eppc:71
+_cvs:72
+_svn:73
+_mysql:74
+_sshd:75
+_qtss:76
+_cyrus:77
+_mailman:78
+_appserver:79
+_clamav:82
+_amavisd:83
+_jabber:84
+_appowner:87
+_windowserver:88
+_spotlight:89
+_tokend:91
+_securityagent:92
+_calendar:93
+_teamsserver:94
+_update_sharing:95
+_installer:96
+_atsserver:97
+_ftp:98
+_unknown:99
+_softwareupdate:200
+_coreaudiod:202
+_screensaver:203
+_locationd:205
+_trustevaluationagent:208
+_timezone:210
+_lda:211
+_cvmsroot:212
+_usbmuxd:213
+_dovecot:214
+_dpaudio:215
+_postgres:216
+_krbtgt:217
+_kadmin_admin:218
+_kadmin_changepw:219
+_devicemgr:220
+_webauthserver:221
+_netbios:222
+_warmd:224
+_dovenull:227
+_netstatistics:228
+_avbdeviced:229
+_krb_krbtgt:230
+_krb_kadmin:231
+_krb_changepw:232
+_krb_kerberos:233
+_krb_anonymous:234
+_assetcache:235
+_coremediaiod:236
+_launchservicesd:239
+_iconservices:240
+_distnote:241
+_nsurlsessiond:242
+_displaypolicyd:244
+_astris:245
+_krbfast:246
+_gamecontrollerd:247
+_mbsetupuser:248
+_ondemand:249
+_xserverdocs:251
+_wwwproxy:252
+_mobileasset:253
+_findmydevice:254
+_datadetectors:257
+_captiveagent:258
+_ctkd:259
+_applepay:260
+_hidd:261
+_cmiodalassistants:262
+_analyticsd:263
+_fpsd:265
+_timed:266
+_nearbyd:268
+_reportmemoryexception:269
+_driverkit:270
+_diskimagesiod:271
+_logd:272
+_appinstalld:273
+_installcoordinationd:274
+_demod:275
+_rmd:277
+_fud:278
+_knowledgegraphd:279
+_coreml:280
+_trustd:282
+_oahd:441
+28. Count the number of people logged in and also trap the users in a file using the tee command.
+Input : student@admins-iMac-4 ~ % who | tee logged_users | wc -l
+Output : 2
+29. Convert the contents of mystates into uppercase.
+Input :
+student@admins-iMac-4 ~ % tr 'a-z' 'A-Z' < mystates
+Output :
+ASSAM
+NAGALAND
+ARUNACHAL PRADESH
+MANIPUR
+MEGHALAYA
+30. Create any two files & display the common values between them.
+Input : student@admins-iMac-4 ~ % echo -e
+"Assam\nNagaland\nManipur\nMizoram\nMeghalaya" > file1
+student@admins-iMac-4 ~ % echo -e "Assam\nTripura\nNagaland\nBihar\nMeghalaya" > file2
+student@admins-iMac-4 ~ % comm -12 file1 file2
+Output :
+Assam

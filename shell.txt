@@ -1,0 +1,179 @@
+OS Lab Assignment 2
+Subject : Operating System
+Name : Aditya Nath Deepak
+Roll no : 10
+PRN: 12311201
+Division: SY CS-A
+Batch : 3
+Topic : Problems on 7 Various Concepts In Shell Scripting
+Problem Statement :
+Write the shell scripts to cover following concepts
+1. Basic Arithmetic
+2. Conditionals and loops
+3. Command Line Arguments
+4. Execution of a linux command in a shell
+5. String operations
+6. Functions
+7. Arrays
+1) Basic arithmetic : W.A.P to calculate Perimeter of
+rectangle after taking input of length and width .
+INPUT :
+student@admins-iMac-4 ~ % nano rectangle_perimeter.sh
+#!/bin/bash
+# Check if two arguments are provided
+if [ $# -ne 2 ]; then
+ echo "Usage: $0 <length> <width>"
+ exit 1
+fi
+# Assign command-line arguments to variables
+length=$1
+width=$2
+# Validate that the inputs are positive numbers
+if ! [[ $length =~ ^[0-9]+([.][0-9]+)?$ ]] || ! [[ $width =~ ^[0-9]+([.][0-9]+)?$
+]]; then
+ echo "Error: Both length and width must be positive numbers."
+ exit 1
+fi
+# Calculate the perimeter
+perimeter=$(echo "2 * ($length + $width)" | bc)
+# Display the result
+echo "The perimeter of the rectangle with length $length and width
+$width is: $perimeter"
+student@admins-iMac-4 ~ % chmod +x rectangle_perimeter.sh
+student@admins-iMac-4 ~ % ./rectangle_perimeter.sh 5 10
+OUTPUT :
+The perimeter of the rectangle with length 5 and width 10 is: 30
+2) Conditionals and Loops : W.A.P. to check if a user exits or
+not .
+Input:
+nano check_user_exists.sh
+#!/bin/bash
+# Check if username is provided as a command-line argument
+if [ $# -ne 1 ]; then
+echo "Usage: $0 <username>"
+exit 1
+fi
+# Assign the argument to a variable
+username=$1
+# Initialize a flag to track if the user exists
+user_exists=false
+# Loop through all system users
+while IFS=: read -r name _; do
+if [ "$name" == "$username" ]; then
+user_exists=true
+break
+fi
+done < /etc/passwd
+# Check the flag and display the result
+if [ "$user_exists" == "true" ]; then
+echo "User '$username' exists in the system."
+else
+echo "User '$username' does not exist in the system."
+fi
+chmod +x check_user_exists.sh
+./check_user_exists.sh root
+OUTPUT : User 'root' exists in the system.
+INPUT 2:
+Student@admins-iMac-4 ~ % ./check_user_exists.sh aditya
+OUTPUT 2 : User 'aditya' does not exist in the system.
+3) Command Line Arguements : W.A.P to convert
+temperature in celsius to Fahrenheit :
+Input : nano celsius_to_fahrenheit.sh
+#!/bin/bash
+# Check if a value is provided
+if [ -z "$1" ]; then
+echo "Usage: $0 <temperature_in_celsius>"
+exit 1
+fi
+# Convert Celsius to Fahrenheit
+fahrenheit=$(echo "scale=2; ($1 * 9 / 5) + 32" | bc)
+echo "$1°C = $fahrenheit°F"
+chmod +x celsius_to_fahrenheit.sh
+./celsius_to_fahrenheit.sh 25
+Output : 25°C = 77°F
+4) Command Line Arguements : W.A.P to convert temperature
+in Fahrenheit to Celsius:
+INPUT :
+nano fahrenheit_to_celsius.sh
+#!/bin/bash
+# Check if one argument is provided
+if [ $# -ne 1 ]; then
+echo "Usage: $0 <temperature_in_fahrenheit>"
+exit 1
+fi
+# Assign the argument to a variable
+fahrenheit=$1
+# Validate that the input is a number
+if ! [[ $fahrenheit =~ ^-?[0-9]+([.][0-9]+)?$ ]]; then
+echo "Error: Please provide a valid numeric temperature in
+Fahrenheit."
+exit 1
+fi
+# Convert Fahrenheit to Celsius
+celsius=$(echo "scale=2; ($fahrenheit - 32) * 5/9" | bc)
+# Display the result
+echo "The temperature $fahrenheit°F in Celsius is: $celsius°C"
+chmod +x fahrenheit_to_celsius.sh
+./fahrenheit_to_celsius.sh 77
+OUTPUT : The temperature 77°F in Celsius is: 25°C
+5) STRINGS : W.A.P. to check if a given string is empty or not
+using command line arguements .
+INPUT : nano check_string_empty.sh
+#!/bin/bash
+# Check if exactly one argument is provided
+if [ $# -ne 1 ]; then
+echo "Usage: $0 <string>"
+exit 1
+fi
+# Assign the argument to a variable
+input_string=$1
+# Check if the string is empty
+if [ -z "$input_string" ]; then
+echo "The string is empty."
+else
+echo "The string is not empty."
+fi
+chmod +x check_string_empty.sh
+./check_string_empty.sh "Hello"
+OUTPUT : The string is not empty.
+6) Execution of Linux commands in Shell and Arrays , And
+Functions : Write a script that takes an array of integers as
+input from user and calculates the maximum and minimum
+values in array and dsiplays results .
+INPUT :
+nano min_max_array.sh
+#!/bin/bash
+# Function to find the maximum and minimum values in an
+array
+find_min_max() {
+local array=("$@") # Get the array as arguments
+local min=${array[0]}
+local max=${array[0]}
+for num in "${array[@]}"; do
+if (( num < min )); then
+min=$num
+fi
+if (( num > max )); then
+max=$num
+fi
+done
+echo "Minimum Value: $min"
+echo "Maximum Value: $max"
+}
+# Main script starts here
+# Prompt the user to input array elements
+echo "Enter the integers separated by spaces:"
+read -a numbers # Read input into an array
+# Check if the array is empty
+if [ ${#numbers[@]} -eq 0 ]; then
+echo "Error: No integers were entered."
+exit 1
+fi
+# Call the function to find the min and max values
+find_min_max "${numbers[@]}"
+chmod +x min_max_array.sh
+./min_max_array.sh
+OUTPUT : Enter the integers separated by spaces:
+1 2 3 4 5
+Minimum Value: 1
+Maximum Value: 5
