@@ -1,0 +1,522 @@
+Os lab assignment 6 final new :
+Problem statements / Topic : Implement the following
+memory management Schemes :
+1. Placement Strategies (First Fit, Next Fit, Best Fit and Worst fit)
+2. Buddy System
+3. Address Translation using paging and segmentation
+4. Page Replacement Algorithms (FIFO, LRU, Optimal)
+1. placemnt strategy :
+#include <stdio.h>
+void print_results(int allocation[], int process_size[], int blocks[], int original_block_size[], int
+processes, int blocks_count) {
+ printf("\nProcess No.\tProcess Size\tBlock No.\tRemaining Block Size\n");
+ int total_fragmentation = 0;
+ for (int i = 0; i < processes; i++) {
+ printf("%d\t\t%d\t\t", i + 1, process_size[i]);
+ if (allocation[i] != -1) {
+ printf("%d\t\t%d\n", allocation[i] + 1, blocks[allocation[i]]);
+ } else {
+ printf("Not Allocated\tN/A\n");
+ }
+ }
+ for (int i = 0; i < blocks_count; i++) {
+ total_fragmentation += blocks[i];
+ }
+ printf("\nTotal Fragmentation = %d KB\n", total_fragmentation);
+}
+void first_fit(int block_size[], int original_block_size[], int blocks, int process_size[], int
+processes) {
+ printf("\n--- First Fit Allocation ---\n");
+ int allocation[processes];
+ for (int i = 0; i < processes; i++) allocation[i] = -1;
+ for (int i = 0; i < processes; i++) {
+ for (int j = 0; j < blocks; j++) {
+ if (block_size[j] >= process_size[i]) {
+ allocation[i] = j;
+ block_size[j] -= process_size[i];
+ break;
+ }
+ }
+ }
+ print_results(allocation, process_size, block_size, original_block_size, processes, blocks);
+}
+void best_fit(int block_size[], int original_block_size[], int blocks, int process_size[], int
+processes) {
+ printf("\n--- Best Fit Allocation ---\n");
+ int allocation[processes];
+ for (int i = 0; i < processes; i++) allocation[i] = -1;
+ for (int i = 0; i < processes; i++) {
+ int best_index = -1;
+ for (int j = 0; j < blocks; j++) {
+ if (block_size[j] >= process_size[i]) {
+ if (best_index == -1 || block_size[j] < block_size[best_index]) {
+ best_index = j;
+ }
+ }
+ }
+ if (best_index != -1) {
+ allocation[i] = best_index;
+ block_size[best_index] -= process_size[i];
+ }
+ }
+ print_results(allocation, process_size, block_size, original_block_size, processes, blocks);
+}
+void worst_fit(int block_size[], int original_block_size[], int blocks, int process_size[], int
+processes) {
+ printf("\n--- Worst Fit Allocation ---\n");
+ int allocation[processes];
+ for (int i = 0; i < processes; i++) allocation[i] = -1;
+ for (int i = 0; i < processes; i++) {
+ int worst_index = -1;
+ for (int j = 0; j < blocks; j++) {
+ if (block_size[j] >= process_size[i]) {
+ if (worst_index == -1 || block_size[j] > block_size[worst_index]) {
+ worst_index = j;
+ }
+ }
+ }
+ if (worst_index != -1) {
+ allocation[i] = worst_index;
+ block_size[worst_index] -= process_size[i];
+ }
+ }
+ print_results(allocation, process_size, block_size, original_block_size, processes, blocks);
+}
+void next_fit(int block_size[], int original_block_size[], int blocks, int process_size[], int
+processes) {
+ printf("\n--- Next Fit Allocation ---\n");
+ int allocation[processes];
+ for (int i = 0; i < processes; i++) allocation[i] = -1;
+ int j = 0;
+ for (int i = 0; i < processes; i++) {
+ int count = 0;
+ while (count < blocks) {
+ if (block_size[j] >= process_size[i]) {
+ allocation[i] = j;
+ block_size[j] -= process_size[i];
+ break;
+ }
+ j = (j + 1) % blocks;
+ count++;
+ }
+ }
+ print_results(allocation, process_size, block_size, original_block_size, processes, blocks);
+}
+int main() {
+ int blocks, processes;
+ printf("Enter the number of free memory blocks: ");
+ scanf("%d", &blocks);
+ int original_block_size[blocks], block_size[blocks];
+ printf("Enter the size of each memory block (in KB):\n");
+ for (int i = 0; i < blocks; i++) {
+ printf("Block %d: ", i + 1);
+ scanf("%d", &original_block_size[i]);
+ block_size[i] = original_block_size[i];
+ }
+ printf("\nEnter the number of processes: ");
+ scanf("%d", &processes);
+ int process_size[processes];
+ printf("Enter the size of each process (in KB):\n");
+ for (int i = 0; i < processes; i++) {
+ printf("Process %d: ", i + 1);
+ scanf("%d", &process_size[i]);
+ }
+ for (int i = 0; i < blocks; i++) block_size[i] = original_block_size[i];
+ first_fit(block_size, original_block_size, blocks, process_size, processes);
+ for (int i = 0; i < blocks; i++) block_size[i] = original_block_size[i];
+ best_fit(block_size, original_block_size, blocks, process_size, processes);
+ for (int i = 0; i < blocks; i++) block_size[i] = original_block_size[i];
+ worst_fit(block_size, original_block_size, blocks, process_size, processes);
+ for (int i = 0; i < blocks; i++) block_size[i] = original_block_size[i];
+ next_fit(block_size, original_block_size, blocks, process_size, processes);
+ return 0;
+}
+2. buddy sytem :
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#define MAX_BLOCK_SIZE 1024
+#define MAX_LEVELS 11 // log2(1024) + 1
+typedef struct Block {
+ int size;
+ int is_free;
+ int process_id;
+ struct Block* next;
+} Block;
+Block* free_list[MAX_LEVELS];
+// Create a new memory block
+Block* create_block(int size) {
+ Block* block = (Block*)malloc(sizeof(Block));
+ block->size = size;
+ block->is_free = 1;
+ block->process_id = -1;
+ block->next = NULL;
+ return block;
+}
+// Initialize memory with 1 large free block
+void init_memory_pool() {
+ for (int i = 0; i < MAX_LEVELS; i++)
+ free_list[i] = NULL;
+ Block* initial_block = create_block(MAX_BLOCK_SIZE);
+ free_list[MAX_LEVELS - 1] = initial_block;
+}
+// Display current memory state
+void print_memory_state() {
+ printf("\nCurrent Memory State:\n");
+ for (int i = 0; i < MAX_LEVELS; i++) {
+ printf("Block size %d KB: ", (int)pow(2, i));
+ Block* current = free_list[i];
+ while (current != NULL) {
+ printf("[Size: %d, Free: %s", current->size, current->is_free ? "Yes" : "No");
+ if (!current->is_free)
+ printf(", Process ID: %d", current->process_id);
+ printf("] -> ");
+ current = current->next;
+ }
+ printf("NULL\n");
+ }
+}
+// Find the smallest level with a block >= required size
+int find_level(int size) {
+ int adjusted_size = (int)pow(2, ceil(log2(size)));
+ int level = log2(adjusted_size);
+ for (int i = level; i < MAX_LEVELS; i++) {
+ if (free_list[i] != NULL)
+ return i;
+ }
+ return -1;
+}
+// Split a block into two buddies
+void split_block(int index) {
+ Block* block = free_list[index];
+ if (!block) return;
+ free_list[index] = block->next;
+ int new_size = block->size / 2;
+ Block* buddy1 = block;
+ Block* buddy2 = create_block(new_size);
+ buddy1->size = new_size;
+ buddy2->size = new_size;
+ buddy1->is_free = 1;
+ buddy2->is_free = 1;
+ buddy1->next = buddy2;
+ buddy2->next = free_list[index - 1];
+ free_list[index - 1] = buddy1;
+ printf("Split block of size %d KB into two buddies of size %d KB each.\n", new_size * 2,
+new_size);
+}
+// Allocate memory to a process
+Block* allocate_memory(int size, int process_id) {
+ printf("\nAllocating %d KB to Process %d\n", size, process_id);
+ int level = find_level(size);
+ if (level == -1) {
+ printf("Error: No sufficient block found for Process %d.\n", process_id);
+ return NULL;
+ }
+ int required_level = (int)ceil(log2(size));
+ while (level > required_level) {
+ split_block(level);
+ level--;
+ }
+ Block* block = free_list[level];
+ if (!block) return NULL;
+ free_list[level] = block->next;
+ block->is_free = 0;
+ block->process_id = process_id;
+ block->next = NULL;
+ printf("Allocated Process %d to block of size %d KB. Remaining = %d KB\n", process_id,
+block->size, block->size - size);
+ print_memory_state();
+ return block;
+}
+// Merge two free buddy blocks if possible
+void merge_buddies(Block* block) {
+ int index = log2(block->size);
+ Block* buddy = NULL, *prev = NULL;
+ for (Block* curr = free_list[index]; curr != NULL; prev = curr, curr = curr->next) {
+ if (curr->is_free && curr->size == block->size) {
+ buddy = curr;
+ break;
+ }
+ }
+ if (buddy != NULL) {
+ if (prev != NULL) prev->next = buddy->next;
+ else free_list[index] = buddy->next;
+ printf("Merging two buddies of size %d KB into block of size %d KB\n", block->size,
+block->size * 2);
+ block->size *= 2;
+ block->is_free = 1;
+ block->process_id = -1;
+ block->next = NULL;
+ merge_buddies(block);
+ } else {
+ block->is_free = 1;
+ block->process_id = -1;
+ block->next = free_list[index];
+ free_list[index] = block;
+ }
+}
+// Free memory of a process
+void free_memory(Block* block) {
+ printf("\nFreeing memory of Process %d from block size %d KB\n", block->process_id,
+block->size);
+ merge_buddies(block);
+ print_memory_state();
+}
+int main() {
+ init_memory_pool();
+ printf("Initial Memory State:\n");
+ print_memory_state();
+ Block* p1 = allocate_memory(150, 1);
+ Block* p2 = allocate_memory(100, 2);
+ Block* p3 = allocate_memory(60, 3);
+ Block* p4 = allocate_memory(300, 4);
+ if (p2) free_memory(p2);
+ if (p1) free_memory(p1);
+ return 0;
+}
+3. Conversion of Physical a to real addres , FIFO)
+#include <stdio.h>
+#include <stdlib.h>
+// Paging translation
+void paging_address_translation() {
+ int page_size, num_pages, virtual_address;
+ printf("\n--- Paging ---\n");
+ printf("Enter the page size (in bytes): ");
+ scanf("%d", &page_size);
+ printf("Enter number of page table entries: ");
+ scanf("%d", &num_pages);
+ int page_table[num_pages];
+ printf("Enter the frame number for each page:\n");
+ for (int i = 0; i < num_pages; i++) {
+ printf("Page %d → Frame: ", i);
+ scanf("%d", &page_table[i]);
+ }
+ printf("Enter the virtual address: ");
+ scanf("%d", &virtual_address);
+ int page_number = virtual_address / page_size;
+ int offset = virtual_address % page_size;
+ printf("\n[Step 1] Virtual Address = %d\n", virtual_address);
+ printf("[Step 2] Page Size = %d → Page Number = %d, Offset = %d\n", page_size,
+page_number, offset);
+ if (page_number >= num_pages) {
+ printf("[Error] Invalid page number!\n");
+ return;
+ }
+ int frame_number = page_table[page_number];
+ int physical_address = (frame_number * page_size) + offset;
+ printf("[Step 3] Frame Number = %d\n", frame_number);
+ printf("[Step 4] Physical Address = %d × %d + %d = %d\n", frame_number, page_size,
+offset, physical_address);
+ printf("→ Final Physical Address = %d\n", physical_address);
+}
+// Segmentation translation
+void segmentation_address_translation() {
+ int segments;
+ printf("\n--- Segmentation ---\n");
+ printf("Enter the number of segments: ");
+ scanf("%d", &segments);
+ int base[segments], limit[segments];
+ printf("Enter base and limit for each segment:\n");
+ for (int i = 0; i < segments; i++) {
+ printf("Segment %d Base: ", i);
+ scanf("%d", &base[i]);
+ printf("Segment %d Limit: ", i);
+ scanf("%d", &limit[i]);
+ }
+ int segment_number, offset;
+ printf("Enter segment number: ");
+ scanf("%d", &segment_number);
+ printf("Enter offset: ");
+ scanf("%d", &offset);
+ printf("\n[Step 1] Segment = %d, Offset = %d\n", segment_number, offset);
+ if (segment_number >= segments) {
+ printf("[Error] Invalid segment number!\n");
+ return;
+ }
+ if (offset >= limit[segment_number]) {
+ printf("[Error] Offset exceeds segment limit!\n");
+ return;
+ }
+ int physical_address = base[segment_number] + offset;
+ printf("[Step 2] Base = %d, Limit = %d\n", base[segment_number],
+limit[segment_number]);
+ printf("[Step 3] Physical Address = %d + %d = %d\n", base[segment_number], offset,
+physical_address);
+ printf("→ Final Physical Address = %d\n", physical_address);
+}
+// Main menu
+int main() {
+ int choice;
+ while (1) {
+ printf("\nChoose Address Translation Scheme:\n");
+ printf("1. Paging\n2. Segmentation\n3. Exit\nEnter your choice: ");
+ scanf("%d", &choice);
+ switch (choice) {
+ case 1: paging_address_translation(); break;
+ case 2: segmentation_address_translation(); break;
+ case 3: printf("Exiting...\n"); exit(0);
+ default: printf("Invalid choice! Try again.\n");
+ }
+ }
+ return 0;
+}
+4. Page replacemtn algos(LRU , OPTIMAL ,
+#include <stdio.h>
+#include <stdbool.h>
+// Print current state of memory frames
+void print_frames(int frames[], int num_frames) {
+ printf("Frames: ");
+ for (int i = 0; i < num_frames; i++) {
+ if (frames[i] == -1)
+ printf("- ");
+ else
+ printf("%d ", frames[i]);
+ }
+}
+// Check if page is already in frames
+bool is_in_frame(int frames[], int num_frames, int page) {
+ for (int i = 0; i < num_frames; i++)
+ if (frames[i] == page)
+ return true;
+ return false;
+}
+// FIFO Algorithm
+void fifo(int pages[], int num_pages, int num_frames) {
+ printf("\n--- FIFO Page Replacement ---\n");
+ int frames[num_frames];
+ int faults = 0, current = 0;
+ for (int i = 0; i < num_frames; i++) frames[i] = -1;
+ for (int i = 0; i < num_pages; i++) {
+ int page = pages[i];
+ printf("Step %d: Page %d -> ", i + 1, page);
+ if (!is_in_frame(frames, num_frames, page)) {
+ frames[current] = page;
+ current = (current + 1) % num_frames;
+ faults++;
+ printf("[Page Fault] ");
+ } else {
+ printf("[No Fault] ");
+ }
+ print_frames(frames, num_frames);
+ int free = 0;
+ for (int j = 0; j < num_frames; j++)
+ if (frames[j] == -1) free++;
+ printf(" | Free Frames: %d | Total Faults so far: %d\n", free, faults);
+ }
+ printf("Total Page Faults (FIFO): %d\n", faults);
+}
+// LRU Algorithm
+void lru(int pages[], int num_pages, int num_frames) {
+ printf("\n--- LRU Page Replacement ---\n");
+ int frames[num_frames], time[num_frames];
+ int faults = 0, counter = 0;
+ for (int i = 0; i < num_frames; i++) {
+ frames[i] = -1;
+ time[i] = 0;
+ }
+ for (int i = 0; i < num_pages; i++) {
+ int page = pages[i];
+ printf("Step %d: Page %d -> ", i + 1, page);
+ bool found = false;
+ for (int j = 0; j < num_frames; j++) {
+ if (frames[j] == page) {
+ found = true;
+ time[j] = ++counter;
+ break;
+ }
+ }
+ if (!found) {
+ int min_time = time[0], pos = 0;
+ for (int j = 1; j < num_frames; j++) {
+ if (time[j] < min_time) {
+ min_time = time[j];
+ pos = j;
+ }
+ }
+ frames[pos] = page;
+ time[pos] = ++counter;
+ faults++;
+ printf("[Page Fault] ");
+ } else {
+ printf("[No Fault] ");
+ }
+ print_frames(frames, num_frames);
+ int free = 0;
+ for (int j = 0; j < num_frames; j++)
+ if (frames[j] == -1) free++;
+ printf(" | Free Frames: %d | Total Faults so far: %d\n", free, faults);
+ }
+ printf("Total Page Faults (LRU): %d\n", faults);
+}
+// Optimal Algorithm
+void optimal(int pages[], int num_pages, int num_frames) {
+ printf("\n--- Optimal Page Replacement ---\n");
+ int frames[num_frames];
+ int faults = 0;
+ for (int i = 0; i < num_frames; i++)
+ frames[i] = -1;
+ for (int i = 0; i < num_pages; i++) {
+ int page = pages[i];
+ printf("Step %d: Page %d -> ", i + 1, page);
+ bool found = false;
+ for (int j = 0; j < num_frames; j++) {
+ if (frames[j] == page) {
+ found = true;
+ break;
+ }
+ }
+ if (!found) {
+ int index = -1, farthest = i + 1;
+ for (int j = 0; j < num_frames; j++) {
+ int k;
+ for (k = i + 1; k < num_pages; k++) {
+ if (frames[j] == pages[k])
+ break;
+ }
+ if (k == num_pages) {
+ index = j;
+ break;
+ } else if (k > farthest) {
+ farthest = k;
+ index = j;
+ }
+ }
+ if (index == -1) {
+ for (int j = 0; j < num_frames; j++) {
+ if (frames[j] == -1) {
+ index = j;
+ break;
+ }
+ }
+ if (index == -1) index = 0;
+ }
+ frames[index] = page;
+ faults++;
+ printf("[Page Fault] ");
+ } else {
+ printf("[No Fault] ");
+ }
+ print_frames(frames, num_frames);
+ int free = 0;
+ for (int j = 0; j < num_frames; j++)
+ if (frames[j] == -1) free++;
+ printf(" | Free Frames: %d | Total Faults so far: %d\n", free, faults);
+ }
+ printf("Total Page Faults (Optimal): %d\n", faults);
+}
+// Main function
+int main() {
+ int num_pages, num_frames;
+ int pages[50];
+ printf("Enter number of pages: ");
+ scanf("%d", &num_pages);
+ printf("Enter the page reference string:\n");
+ for (int i = 0; i < num_pages; i++)
+ scanf("%d", &pages[i]);
+ printf("Enter number of frames: ");
+ scanf("%d", &num_frames);
+ fifo(pages, num_pages, num_frames);
+ lru(pages, num_pages, num_frames);
+ optimal(pages, num_pages, num_frames);
+ return 0;
+}

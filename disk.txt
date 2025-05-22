@@ -1,0 +1,251 @@
+OS Lab Assignment 8
+Problem statements :
+Implement following Disk scheduling algorithms
+1. C SCAN
+2. FCFS
+3. SCAN
+4. SSTF
+C- SCAN :
+#include <stdio.h>
+#include <stdlib.h>
+int compare(const void *a, const void *b) {
+return (*(int *)a - *(int *)b);
+}
+int main() {
+int head, n, totalCylinders;
+// Input the total number of cylinders
+printf("Enter the total number of cylinders: ");
+scanf("%d", &totalCylinders);
+// Input the current head position
+printf("Enter the current head position: ");
+scanf("%d", &head);
+// Input the number of requests
+printf("Enter the number of requests: ");
+scanf("%d", &n);
+int requests[n];
+// Input the requests
+printf("Enter the requests (space-separated): ");
+for (int i = 0; i < n; i++) {
+scanf("%d", &requests[i]);
+// Check if any request exceeds the total number of cylinders
+if (requests[i] >= totalCylinders) {
+printf("Request %d is above the total number of cylinders
+(%d).\n", requests[i], totalCylinders);
+return 1; // Exit the program
+}
+}
+int totalSeek = 0;
+int previousHead = head;
+float avgseek=0.0f;
+// Sort the requests
+qsort(requests, n, sizeof(int), compare);
+// Find the index of the first request that is larger than the head
+position
+int idx = 0;
+while (idx < n && requests[idx] < head) {
+idx++;
+}
+printf("\nCurrent Position | Request | Movement\n");
+printf("-----------------|---------|-----------\n");
+// First, move upwards (towards the largest request)
+for (int i = idx; i < n; i++) {
+int movement = abs(requests[i] - previousHead);
+totalSeek += movement;
+printf("%17d | %7d | %9d\n", previousHead, requests[i],
+movement);
+previousHead = requests[i];
+}
+// Jump directly to the smallest request
+int movement = abs(previousHead - requests[0]);
+totalSeek += movement;
+printf("%17d | %7d | %9d\n", previousHead, requests[0],
+movement);
+previousHead = requests[0];
+// Continue moving upwards to process the remaining requests
+for (int i = 1; i < idx; i++) {
+movement = abs(requests[i] - previousHead);
+totalSeek += movement;
+printf("%17d | %7d | %9d\n", previousHead, requests[i],
+movement);
+previousHead = requests[i];
+}
+// Display the total seek time
+avgseek=(float)totalSeek/n;
+printf("\nTotal seek time: %d\n", totalSeek);
+printf("\nTotal seek time: %.2f\n", avgseek);
+return 0;
+}
+FCFS :
+#include <stdio.h>
+#include <stdlib.h>
+int main() {
+int head, n;
+// Input the current head position
+printf("Enter the current head position: ");
+scanf("%d", &head);
+// Input the number of requests
+printf("Enter the number of requests: ");
+scanf("%d", &n);
+int requests[n];
+// Input the requests
+printf("Enter the requests : ");
+for (int i = 0; i < n; i++) {
+scanf("%d", &requests[i]);
+}
+int totalSeek = 0;
+float avgseek=0.0f;
+int previousHead = head;
+printf("\nCurrent Position | Request | Movement\n");
+printf("------------------|---------|-----------\n");
+// Process each request in the order they were given (FCFS)
+for (int i = 0; i < n; i++) {
+int movement = abs(requests[i] - previousHead);
+totalSeek += movement;
+// Display the movement details
+printf("%17d | %7d | %9d\n", previousHead, requests[i],
+movement);
+// Update the head position
+previousHead = requests[i];
+}
+// Display total seek time
+avgseek=(float)totalSeek/n;
+printf("\nTotal seek time: %d\n", totalSeek);
+printf("\nAverage seek time: %.2f\n", avgseek);
+return 0;
+}
+SCAN ALgo :
+#include <stdio.h>
+#include <stdlib.h>
+int compare(const void *a, const void *b) {
+return (*(int *)a - *(int *)b);
+}
+int main() {
+int head, n, totalCylinders;
+// Input the total number of cylinders
+printf("Enter the total number of cylinders: ");
+scanf("%d", &totalCylinders);
+// Input the current head position
+printf("Enter the current head position: ");
+scanf("%d", &head);
+// Input the number of requests
+printf("Enter the number of requests: ");
+scanf("%d", &n);
+int requests[n];
+// Input the requests
+printf("Enter the requests (space-separated): ");
+for (int i = 0; i < n; i++) {
+scanf("%d", &requests[i]);
+// Check if any request exceeds the total number of cylinders
+if (requests[i] >= totalCylinders) {
+printf("Request %d is above the total number of cylinders
+(%d).\n", requests[i], totalCylinders);
+return 1; // Exit the program
+}
+}
+int totalSeek = 0;
+int previousHead = head;
+float avgseek=0.0f;
+// Sort the requests
+qsort(requests, n, sizeof(int), compare);
+// Find the index of the first request that is larger than the head
+position
+int idx = 0;
+while (idx < n && requests[idx] < head) {
+idx++;
+}
+printf("\nCurrent Position | Request | Movement\n");
+printf("-----------------|---------|-----------\n");
+// First, move upwards (towards the largest request)
+for (int i = idx; i < n; i++) {
+int movement = abs(requests[i] - previousHead);
+totalSeek += movement;
+printf("%17d | %7d | %9d\n", previousHead, requests[i],
+movement);
+previousHead = requests[i];
+}
+// Now, reverse direction and move downwards (towards the
+smallest request)
+for (int i = idx - 1; i >= 0; i--) {
+int movement = abs(requests[i] - previousHead);
+totalSeek += movement;
+printf("%17d | %7d | %9d\n", previousHead, requests[i],
+movement);
+previousHead = requests[i];
+}
+avgseek=(float)totalSeek/n;
+printf("\nTotal seek time: %d\n", totalSeek);
+printf("\nTotal seek time: %.2f\n", avgseek);
+return 0;
+}
+SSTF :
+#include <stdio.h>
+#include <stdlib.h>
+// Function to calculate the difference between the current head
+position and each request
+void calculateDifference(int request[], int head, int diff[], int n) {
+for (int i = 0; i < n; i++) {
+diff[i] = abs(head - request[i]);
+}
+}
+// Function to find the request with the minimum distance from the
+current head
+int findMIN(int diff[], int n, int visited[]) {
+int min = 1e9;
+int index = -1;
+for (int i = 0; i < n; i++) {
+if (!visited[i] && diff[i] < min) {
+min = diff[i];
+index = i;
+}
+}
+return index;
+}
+void shortestSeekTimeFirst(int request[], int head, int n) {
+int diff[n];
+int visited[n]; // Array to track visited requests
+for (int i = 0; i < n; i++) {
+visited[i] = 0; // Initialize all requests as unvisited
+}
+int totalSeekTime = 0;
+float averageSeekTime;
+printf("Current Position | Request | Movement\n");
+printf("-----------------|---------|-----------\n");
+// Perform SSTF disk scheduling
+for (int i = 0; i < n; i++) {
+// Calculate the differences of each request from the head
+calculateDifference(request, head, diff, n);
+// Find the closest request to the current head
+int index = findMIN(diff, n, visited);
+// Calculate the seek movement
+int movement = diff[index];
+totalSeekTime += movement;
+// Print the current position, request, and movement
+printf("%16d | %7d | %9d\n", head, request[index],
+movement);
+// Mark this request as visited
+visited[index] = 1;
+// Move the head to the new request
+head = request[index];
+}
+averageSeekTime = (float)totalSeekTime / n;
+printf("\nTotal seek time: %d\n", totalSeekTime);
+printf("Average seek time: %.2f\n", averageSeekTime);
+}
+int main() {
+int n, head;
+// Take user input for current head position and number of
+requests
+printf("Enter the current head position: ");
+scanf("%d", &head);
+printf("Enter the number of requests: ");
+scanf("%d", &n);
+int request[n];
+// Take user input for the request values
+printf("Enter the requests: ");
+for (int i = 0; i < n; i++) {
+scanf("%d", &request[i]);
+}
+// Call the SSTF scheduling function
+shortestSeekTimeFirst(request, head, n);
+return 0;
+}
